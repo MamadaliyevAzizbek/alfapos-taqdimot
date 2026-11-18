@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AlfaPOS — ERP</title>
+  <style>
+    :root {
+      --primary: #1261ff;
+      --ink: #1e293b;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --bg: #ffffff;
+      --soft: #f8fafc;
+      --danger: #ef4444;
+      --ok: #16a34a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      overflow: hidden;
+    }
+    .deck { height: 100%; }
+    .slide {
+      display: none;
+      height: 100%;
+      padding: 64px 72px 80px;
+      background: var(--bg);
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 24px;
+      text-align: center;
+      position: relative;
+    }
+    .slide.active { display: flex; }
+    .slide.left { align-items: flex-start; text-align: left; }
+    .no {
+      position: absolute;
+      top: 32px; left: 48px;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    h1 {
+      font-size: clamp(36px, 5.5vw, 64px);
+      font-weight: 700;
+      line-height: 1.08;
+      letter-spacing: -.03em;
+    }
+    h2 {
+      font-size: clamp(26px, 3.8vw, 40px);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -.02em;
+    }
+    .primary { color: var(--primary); }
+    .danger { color: var(--danger); }
+    .muted { color: var(--muted); }
+    .line {
+      width: 48px;
+      height: 2px;
+      background: var(--primary);
+    }
+    .lead {
+      font-size: clamp(16px, 1.8vw, 20px);
+      color: var(--muted);
+      max-width: 34ch;
+      line-height: 1.5;
+      font-weight: 400;
+    }
+    .people {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 840px;
+      width: 100%;
+    }
+    .person {
+      flex: 1;
+      min-width: 180px;
+      max-width: 240px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .score {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--danger);
+      border: 1px solid #fecaca;
+      background: #fef2f2;
+      padding: 4px 14px;
+      border-radius: 8px;
+    }
+    .person-card {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg);
+    }
+    .avatar {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: #eff6ff;
+      color: var(--primary);
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      font-weight: 700;
+    }
+    .person-card strong { font-size: 18px; font-weight: 650; }
+    .person-card span { color: var(--muted); font-size: 14px; }
+    .acronym {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      column-gap: 20px;
+      row-gap: 14px;
+      align-items: center;
+      width: max-content;
+      margin: 0 auto;
+    }
+    .acronym .L {
+      width: 72px;
+      height: 72px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: #eff6ff;
+      color: var(--primary);
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: 0;
+      line-height: 1;
+    }
+    .acronym .rest {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 650;
+      letter-spacing: -.02em;
+      line-height: 1;
+      color: var(--ink);
+      text-align: left;
+    }
+    .pills {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      width: 100%;
+      max-width: 640px;
+    }
+    .pill {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 10px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      text-align: center;
+    }
+    .pill .ico {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: #eff6ff;
+      color: var(--primary);
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+    }
+    .pill .lbl {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    @media (max-width: 700px) {
+      .pills { grid-template-columns: repeat(2, 1fr); }
+    }
+    .path {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-width: 860px;
+    }
+    .path .node {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-weight: 700;
+      font-size: 15px;
+      background: #fff;
+    }
+    .path .node.on {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+    .path .sep {
+      color: var(--line);
+      font-weight: 700;
+      font-size: 18px;
+    }
+    .grow-no {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: .12em;
+    }
+    .grow-tag {
+      font-size: clamp(56px, 10vw, 96px);
+      font-weight: 800;
+      letter-spacing: -.04em;
+      line-height: .95;
+      color: var(--primary);
+    }
+    .grow-badge {
+      display: inline-grid;
+      place-items: center;
+      min-width: 160px;
+      padding: 28px 40px;
+      border-radius: 24px;
+      background: var(--primary);
+      color: #fff;
+      font-size: clamp(48px, 8vw, 72px);
+      font-weight: 800;
+      letter-spacing: -.04em;
+      line-height: 1;
+    }
+    .grow-pair {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 14px;
+      width: min(420px, 90vw);
+    }
+    .grow-pair .box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px 14px;
+      font-weight: 700;
+      font-size: 16px;
+      text-align: center;
+      background: #fff;
+    }
+    .grow-pair .plus {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #eff6ff;
+      color: var(--primary);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 18px;
+    }
+    .grow-eq {
+      color: var(--muted);
+      font-size: 22px;
+      font-weight: 700;
+      margin: -4px 0;
+    }
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+      width: 100%;
+      max-width: 980px;
+      text-align: center;
+    }
+    .split-left, .split-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .split-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .logo-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      width: 100%;
+      max-width: 130px;
+      align-items: center;
+    }
+    .logo-tile {
+      border: none;
+      background: #fff;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 110px;
+      height: 26px;
+      flex: 0 0 26px;
+    }
+    .logo-tile img {
+      width: 100px;
+      height: 24px;
+      max-width: 100px;
+      max-height: 24px;
+      object-fit: contain;
+      object-position: center;
+      display: block;
+    }
+    @media (max-width: 800px) {
+      .split { grid-template-columns: 1fr; gap: 28px; }
+    }
+    .grow-title {
+      font-size: clamp(22px, 3vw, 32px);
+      font-weight: 700;
+      letter-spacing: -.02em;
+      max-width: 18ch;
+    }
+    .grow-desc {
+      font-size: clamp(16px, 2vw, 20px);
+      color: var(--muted);
+      max-width: 28ch;
+      line-height: 1.45;
+    }
+    .dots {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .dots i {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--line);
+      display: block;
+    }
+    .dots i.on { background: var(--primary); }
+    .flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      flex-wrap: wrap;
+    }
+    .flow-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .dot {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1.5px solid var(--line);
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      background: #fff;
+    }
+    .dot.done { background: var(--ok); border-color: var(--ok); color: #fff; }
+    .dot.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .flow-line { width: 28px; height: 2px; background: var(--line); margin-bottom: 18px; }
+    .flow-line.done { background: var(--ok); }
+    .flow-label { font-size: 11px; color: var(--muted); width: 48px; text-align: center; }
+    .live {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr 1fr;
+      gap: 12px;
+      width: 100%;
+      max-width: 780px;
+      text-align: left;
+    }
+    .mod {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 16px;
+      background: #fff;
+    }
+    .mod .tag { font-size: 12px; font-weight: 650; color: var(--primary); margin-bottom: 6px; }
+    .mod .big { font-size: 28px; font-weight: 700; letter-spacing: -.02em; }
+    .mod .ok { color: var(--ok); font-size: 13px; font-weight: 600; margin-top: 4px; }
+    .mod.main { border-color: var(--primary); }
+    .mod.main dl {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 4px 12px;
+      font-size: 13px;
+    }
+    .mod.main dt { color: var(--muted); }
+    .mod.main dd { font-weight: 600; }
+    .bars { display: flex; align-items: flex-end; gap: 5px; height: 40px; margin-top: 8px; }
+    .bars i { display: block; width: 12px; border-radius: 2px 2px 0 0; background: var(--primary); opacity: .35; }
+    .bars i:nth-child(2) { opacity: .55; height: 70% !important; }
+    .bars i:nth-child(3) { opacity: .45; }
+    .bars i:nth-child(4) { opacity: .85; }
+    .grid {
+      display: grid;
+      gap: 12px;
+      width: 100%;
+      max-width: 960px;
+      text-align: left;
+    }
+    .g2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .g3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .g4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px 18px;
+      background: #fff;
+    }
+    .card h3 { font-size: 15px; font-weight: 650; margin-bottom: 6px; }
+    .card p, .card li { color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .card ul { padding-left: 16px; }
+    .card li + li { margin-top: 4px; }
+    .n {
+      display: inline-flex;
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      background: #eff6ff;
+      color: var(--primary);
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .steps { width: 100%; max-width: 720px; display: grid; gap: 8px; text-align: left; }
+    .step {
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 12px;
+      align-items: start;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .step .ix {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      background: var(--primary);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .step strong { display: block; font-size: 14px; margin-bottom: 2px; }
+    .step span { color: var(--muted); font-size: 12px; line-height: 1.4; }
+    .price { font-size: 28px; font-weight: 700; color: var(--primary); letter-spacing: -.02em; }
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; max-width: 800px; text-align: left; }
+    .bad { border-top: 2px solid var(--danger); }
+    .good { border-top: 2px solid var(--ok); }
+    .footer {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: #fff;
+      border-top: 1px solid var(--line);
+      font-size: 12px;
+      color: var(--muted);
+      z-index: 20;
+    }
+    .progress {
+      position: absolute; left: 0; top: 0;
+      height: 2px; background: var(--primary); width: 0;
+      transition: width .2s ease;
+    }
+    .nav {
+      background: #fff;
+      border: 1px solid var(--line);
+      color: var(--ink);
+      border-radius: 8px;
+      padding: 4px 10px;
+      cursor: pointer;
+    }
+    .cta {
+      display: inline-flex;
+      padding: 12px 20px;
+      border-radius: 10px;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 650;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .slide.shot {
+      justify-content: flex-start;
+      padding-top: 40px;
+      padding-bottom: 64px;
+      gap: 16px;
+    }
+    .shot-head {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .shot-tag {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .1em;
+      color: #fff;
+      background: var(--primary);
+      padding: 6px 12px;
+      border-radius: 8px;
+    }
+    .shot-head h2 {
+      font-size: clamp(22px, 3vw, 32px);
+      margin: 0;
+    }
+    .shot-frame {
+      width: min(1200px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    .shot-frame img {
+      display: block;
+      width: auto;
+      max-width: 100%;
+      height: auto;
+      max-height: calc(100vh - 150px);
+      object-fit: contain;
+      object-position: top center;
+    }
+    .q {
+      font-size: clamp(28px, 4.5vw, 48px);
+      font-weight: 700;
+      letter-spacing: -.03em;
+      line-height: 1.15;
+      max-width: none;
+    }
+    .q span { color: var(--primary); }
+    .seven-eyes {
+      font-size: clamp(48px, 10vw, 100px);
+      font-weight: 800;
+      letter-spacing: -.04em;
+      line-height: 1;
+      text-transform: uppercase;
+      white-space: nowrap;
+      margin: 0;
+    }
+    .seven-eyes span {
+      color: var(--primary);
+    }
+    .dash-answer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      max-width: 720px;
+    }
+    .dash-chip {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 12px 20px;
+      font-weight: 700;
+      font-size: 15px;
+      background: #fff;
+    }
+    .dash-chip em {
+      font-style: normal;
+      color: var(--primary);
+      margin-right: 6px;
+      font-weight: 800;
+    }
+    .slide.explain {
+      justify-content: flex-start;
+      padding-top: 36px;
+      padding-bottom: 64px;
+      gap: 14px;
+    }
+    .insight {
+      font-size: clamp(22px, 3.2vw, 34px);
+      font-weight: 700;
+      letter-spacing: -.03em;
+      line-height: 1.2;
+      max-width: 28ch;
+      white-space: nowrap;
+    }
+    .insight .ask { color: var(--muted); font-weight: 500; }
+    .label-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .label-row .name {
+      font-size: clamp(16px, 2vw, 20px);
+      font-weight: 650;
+      color: var(--ink);
+    }
+    .shot-frame.soft {
+      border-radius: 16px;
+      box-shadow: 0 1px 0 rgba(15,23,42,.04);
+    }
+    .shot-frame.soft img {
+      max-height: calc(100vh - 200px);
+    }
+    .slide.eco {
+      justify-content: flex-start;
+      gap: 18px;
+      padding-top: 36px;
+      padding-bottom: 64px;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 40%, #eff6ff 0%, #ffffff 58%);
+    }
+    .eco-title {
+      font-size: clamp(22px, 3vw, 32px);
+      font-weight: 800;
+      letter-spacing: .14em;
+      line-height: 1.12;
+      margin: 0;
+      color: var(--primary);
+    }
+    .slide.answers {
+      justify-content: flex-start;
+      gap: 16px;
+      padding-top: 32px;
+      padding-bottom: 56px;
+      align-items: center;
+      background: radial-gradient(ellipse 80% 50% at 50% 0%, #eff6ff 0%, #fff 55%);
+    }
+    .answers-head h1 {
+      font-size: clamp(24px, 3.6vw, 40px);
+      margin: 0;
+      text-align: center;
+    }
+    .answers-head h1 span { color: var(--primary); }
+    .qa-grid {
+      width: min(1180px, 100%);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .qa-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+      box-shadow: 0 10px 28px rgba(18, 97, 255, .06);
+      min-height: 0;
+    }
+    .qa-card.wide { grid-column: span 1; }
+    .qa-card .qa-q {
+      padding: 12px 14px 8px;
+      font-size: 13px;
+      font-weight: 650;
+      color: var(--muted);
+      line-height: 1.3;
+      min-height: 52px;
+    }
+    .qa-card .qa-q em {
+      font-style: normal;
+      color: var(--primary);
+      font-weight: 800;
+      margin-right: 6px;
+    }
+    .qa-card .qa-thumb {
+      margin: 0 12px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      aspect-ratio: 16 / 10;
+    }
+    .qa-card .qa-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+    }
+    .qa-card .qa-name {
+      padding: 10px 14px 14px;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      color: var(--ink);
+    }
+    .dash-name {
+      font-size: clamp(15px, 1.8vw, 18px);
+      font-weight: 750;
+      color: var(--primary);
+      letter-spacing: -.01em;
+    }
+    @media (max-width: 1100px) {
+      .qa-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 700px) {
+      .qa-grid { grid-template-columns: 1fr 1fr; }
+    }
+    .eco-stage {
+      width: min(1100px, 100%);
+    }
+    .eco-shot {
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: #fff;
+      overflow: hidden;
+      box-shadow: 0 18px 50px rgba(18, 97, 255, .10);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+    }
+    .eco-shot img {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: calc(100vh - 220px);
+      object-fit: contain;
+    }
+    .slide.contact {
+      background: var(--bg);
+      gap: 28px;
+    }
+    .contact-logo {
+      height: 56px;
+      width: auto;
+      object-fit: contain;
+    }
+    .contact-phone {
+      font-size: clamp(22px, 2.8vw, 28px);
+      font-weight: 650;
+      letter-spacing: -.02em;
+      color: var(--ink);
+      text-decoration: none;
+    }
+    .contact-links {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+    .contact-links a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+    .contact-links a:hover { color: var(--primary); }
+    .shot-duo, .shot-trio {
+      width: min(1200px, 100%);
+      display: grid;
+      gap: 12px;
+    }
+    .shot-duo { grid-template-columns: 1fr 1fr; }
+    .shot-trio { grid-template-columns: repeat(3, 1fr); }
+    .shot-duo .shot-frame,
+    .shot-trio .shot-frame {
+      width: 100%;
+      flex-direction: column;
+    }
+    .shot-duo .shot-frame img {
+      max-height: calc(100vh - 240px);
+      width: 100%;
+    }
+    .shot-trio .shot-frame img {
+      max-height: calc(100vh - 260px);
+      width: 100%;
+    }
+    .shot-cap {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      color: var(--muted);
+      padding: 8px 12px 0;
+      text-align: left;
+      width: 100%;
+    }
+    .hint {
+      font-size: 14px;
+      color: var(--muted);
+      max-width: 36ch;
+      margin: 0;
+      line-height: 1.45;
+    }
+    @media (max-width: 900px) {
+      .slide { padding: 48px 20px 64px; }
+      .g2, .g3, .g4, .compare, .live { grid-template-columns: 1fr; }
+      .shot-duo, .shot-trio { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="deck">
+
+    <section class="slide active" data-title="ERP">
+      <h1 style="font-size:clamp(72px,12vw,140px);letter-spacing:-.04em;line-height:.95;">ERP</h1>
+    </section>
+
+    <section class="slide" data-title="Enterprise Resource Planning">
+      <div class="acronym" aria-label="ERP — Enterprise Resource Planning">
+        <span class="L">E</span><span class="rest">Enterprise</span>
+        <span class="L">R</span><span class="rest">Resource</span>
+        <span class="L">P</span><span class="rest">Planning</span>
+      </div>
+      <div class="pills">
+        <div class="pill"><span class="ico">01</span><span class="lbl">Mahsulot</span></div>
+        <div class="pill"><span class="ico">02</span><span class="lbl">Mijozlar</span></div>
+        <div class="pill"><span class="ico">03</span><span class="lbl">Xodimlar</span></div>
+        <div class="pill"><span class="ico">04</span><span class="lbl">Vaqt</span></div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="1 · Mahsulot">
+      <p class="grow-no">01</p>
+      <div class="split">
+        <div class="split-left">
+          <div class="grow-pair">
+            <div class="box">Mahsulot</div>
+            <div class="plus">+</div>
+            <div class="box">Savdo</div>
+          </div>
+          <div class="grow-eq">↓</div>
+          <div class="grow-badge">POS</div>
+        </div>
+        <div class="split-right">
+          <div class="logo-grid">
+            <div class="logo-tile"><img src="logos/billz.png" alt="Billz" /></div>
+            <div class="logo-tile"><img src="logos/pospoint.png" alt="PosPoint" /></div>
+            <div class="logo-tile"><img src="logos/yespos.svg" alt="YesPOS" /></div>
+            <div class="logo-tile"><img src="logos/alipos.svg" alt="AliPOS" /></div>
+            <div class="logo-tile"><img src="logos/clopos.png" alt="CloPOS" /></div>
+            <div class="logo-tile"><img src="logos/alfapos.png" alt="AlfaPOS" /></div>
+          </div>
+        </div>
+      </div>
+      <div class="dots"><i class="on"></i><i></i><i></i><i></i></div>
+    </section>
+
+    <section class="slide" data-title="2 · Mijozlar">
+      <p class="grow-no">02</p>
+      <div class="split">
+        <div class="split-left">
+          <div class="grow-pair">
+            <div class="box">Mijoz</div>
+            <div class="plus">+</div>
+            <div class="box">Qarz</div>
+          </div>
+          <div class="grow-eq">↓</div>
+          <div class="grow-badge">CRM</div>
+        </div>
+        <div class="split-right">
+          <div class="logo-grid">
+            <div class="logo-tile"><img src="logos/crm-amocrm.png" alt="amoCRM" /></div>
+            <div class="logo-tile"><img src="logos/crm-bitrix24-wm.png" alt="Bitrix24" /></div>
+            <div class="logo-tile"><img src="logos/crm-salesforce.png" alt="Salesforce" /></div>
+            <div class="logo-tile"><img src="logos/crm-gocrm.png" alt="GoCRM" /></div>
+            <div class="logo-tile"><img src="logos/crm-shamcrm.png" alt="shamCRM" /></div>
+            <div class="logo-tile"><img src="logos/crm-megaplan.png" alt="Megaplan" /></div>
+          </div>
+        </div>
+      </div>
+      <div class="dots"><i class="on"></i><i class="on"></i><i></i><i></i></div>
+    </section>
+
+    <section class="slide" data-title="3 · Xodimlar">
+      <p class="grow-no">03</p>
+      <div class="split">
+        <div class="split-left">
+          <div class="grow-pair">
+            <div class="box">Oylik</div>
+            <div class="plus">+</div>
+            <div class="box">KPI</div>
+          </div>
+          <div class="grow-eq">↓</div>
+          <div class="grow-badge">HR</div>
+        </div>
+        <div class="split-right">
+          <div class="logo-grid">
+            <div class="logo-tile"><img src="logos/hr-bamboo.png" alt="BambooHR" /></div>
+            <div class="logo-tile"><img src="logos/hr-personio.png" alt="Personio" /></div>
+            <div class="logo-tile"><img src="logos/hr-workday.png" alt="Workday" /></div>
+            <div class="logo-tile"><img src="logos/hr-hh.png" alt="HeadHunter" /></div>
+          </div>
+        </div>
+      </div>
+      <div class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+    </section>
+
+    <section class="slide" data-title="4 · Vaqt">
+      <p class="grow-no">04</p>
+      <div class="split">
+        <div class="split-left">
+          <div class="grow-pair">
+            <div class="box">Vaqt</div>
+            <div class="plus">+</div>
+            <div class="box">Vazifalar</div>
+          </div>
+          <div class="grow-eq">↓</div>
+          <div class="grow-badge">TMS</div>
+        </div>
+        <div class="split-right">
+          <div class="logo-grid">
+            <div class="logo-tile"><img src="logos/tms-asana.png" alt="Asana" /></div>
+            <div class="logo-tile"><img src="logos/tms-trello.png" alt="Trello" /></div>
+            <div class="logo-tile"><img src="logos/tms-notion-icon.png" alt="Notion" /></div>
+            <div class="logo-tile"><img src="logos/tms-clickup.png" alt="ClickUp" /></div>
+            <div class="logo-tile"><img src="logos/tms-jira.png" alt="Jira" /></div>
+          </div>
+        </div>
+      </div>
+      <div class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+    </section>
+
+    <section class="slide" data-title="Yig‘indi">
+      <h1 class="primary" style="font-size:clamp(64px,12vw,120px);letter-spacing:-.04em">ERP</h1>
+    </section>
+
+    <section class="slide shot" data-title="POS · Mahsulotlar">
+      <div class="shot-head">
+        <span class="shot-tag">POS</span>
+        <h2>Mahsulotlar</h2>
+      </div>
+      <div class="shot-frame">
+        <img src="screenshots/mahsulotlar1.png" alt="AlfaPOS Mahsulotlar" />
+      </div>
+    </section>
+
+    <section class="slide shot" data-title="CRM · Mijozlar">
+      <div class="shot-head">
+        <span class="shot-tag">CRM</span>
+        <h2>Mijozlar</h2>
+      </div>
+      <div class="shot-frame">
+        <img src="screenshots/mijozlar1.png" alt="AlfaPOS Mijozlar" />
+      </div>
+    </section>
+
+    <section class="slide shot" data-title="HR · Oylik">
+      <div class="shot-head">
+        <span class="shot-tag">HR</span>
+        <h2>Oylik</h2>
+      </div>
+      <div class="shot-frame">
+        <img src="screenshots/xodimlar1.png" alt="AlfaPOS Xodimlar Oylik" />
+      </div>
+    </section>
+
+    <section class="slide shot" data-title="TMS">
+      <div class="shot-head">
+        <span class="shot-tag">TMS</span>
+        <h2>TMS</h2>
+      </div>
+      <div class="shot-frame">
+        <img src="screenshots/tms1.png" alt="AlfaPOS TMS" />
+      </div>
+    </section>
+
+    <section class="slide" data-title="Dashboard savol">
+      <h1 class="q">ERP da qanday <span>dashboardlar</span><br />bo‘lishi kerak?</h1>
+    </section>
+
+    <section class="slide" data-title="7 ta ko‘z">
+      <h1 class="seven-eyes">7 TA <span>KO‘Z</span></h1>
+    </section>
+
+    <section class="slide" data-title="7 ta savol">
+      <h1 class="seven-eyes">7 TA <span>SAVOL</span></h1>
+    </section>
+
+    <section class="slide explain" data-title="01 · Oylik savdo">
+      <p class="grow-no">01 / 07</p>
+      <p class="insight"><span class="ask">Savdo</span> o'syaptimi?</p>
+      <div class="shot-frame soft">
+        <img src="screenshots/user-savdo.png" alt="Oylik savdo" />
+      </div>
+      <p class="dash-name">Oylik savdo</p>
+    </section>
+
+    <section class="slide explain" data-title="02 · Mijoz oqimi">
+      <p class="grow-no">02 / 07</p>
+      <p class="insight"><span class="ask">Mijoz</span> qayerdan kelyapti?</p>
+      <div class="shot-frame soft">
+        <img src="screenshots/user-mijoz-oqimi.png" alt="Mijoz oqimi — lead manba" />
+      </div>
+      <p class="dash-name">Mijoz oqimi</p>
+    </section>
+
+    <section class="slide explain" data-title="03 · Mahsulot">
+      <p class="grow-no">03 / 07</p>
+      <p class="insight">Qaysi mahsulot yaxshi sotilmoqda?</p>
+      <div class="shot-duo">
+        <div class="shot-frame soft">
+          <div class="shot-cap">DAROMAD BO‘YICHA</div>
+          <img src="screenshots/user-mahsulot-1.png" alt="Daromad bo'yicha top mahsulotlar" />
+        </div>
+        <div class="shot-frame soft">
+          <div class="shot-cap">DONA BO‘YICHA</div>
+          <img src="screenshots/user-mahsulot-2.png" alt="Dona bo'yicha top mahsulotlar" />
+        </div>
+      </div>
+      <p class="dash-name">Mahsulotlar tahlili</p>
+    </section>
+
+    <section class="slide explain" data-title="04 · Mijoz o'sishi">
+      <p class="grow-no">04 / 07</p>
+      <p class="insight"><span class="ask">Yangi mijoz</span> kelayaptimi?</p>
+      <div class="shot-frame soft">
+        <img src="screenshots/user-mijoz-osish.png" alt="Yangi mijozlar grafigi" />
+      </div>
+      <p class="dash-name">Yangi mijozlar</p>
+    </section>
+
+    <section class="slide explain" data-title="05 · Mijoz analitika">
+      <p class="grow-no">05 / 07</p>
+      <p class="insight">Biznesim kimni qo‘lida?</p>
+      <div class="shot-trio">
+        <div class="shot-frame soft">
+          <div class="shot-cap">TOP MIJOZ</div>
+          <img src="screenshots/user-eng-yaxshi-mijozlar.png" alt="Eng yaxshi mijozlar" />
+        </div>
+        <div class="shot-frame soft">
+          <div class="shot-cap">TOP QARZ</div>
+          <img src="screenshots/user-top-qarzdorlar.png" alt="Top qarzdorlar" />
+        </div>
+        <div class="shot-frame soft">
+          <div class="shot-cap">MUDDATI O‘TGAN</div>
+          <img src="screenshots/user-muddati-otgan-qarz.png" alt="Qarz muddati o'tganlar" />
+        </div>
+      </div>
+      <p class="dash-name">Mijozlar analitikasi</p>
+    </section>
+
+    <section class="slide explain" data-title="06 · Xodimlar">
+      <p class="grow-no">06 / 07</p>
+      <p class="insight">Kim yaxshi ishlayapti?</p>
+      <div class="shot-duo">
+        <div class="shot-frame soft">
+          <div class="shot-cap">GRAFIK</div>
+          <img src="screenshots/user-xodimlar-1.png" alt="Xodimlar savdo grafigi" />
+        </div>
+        <div class="shot-frame soft">
+          <div class="shot-cap">JADVAL</div>
+          <img src="screenshots/user-xodimlar-2.png" alt="Xodimlar savdo jadvali" />
+        </div>
+      </div>
+      <p class="dash-name">Xodimlar hisoboti</p>
+    </section>
+
+    <section class="slide explain" data-title="07 · Foyda">
+      <p class="grow-no">07 / 07</p>
+      <p class="insight"><span class="ask">Savdo bor —</span> foyda bormi?</p>
+      <div class="shot-frame soft">
+        <img src="screenshots/user-fayda-zarar.png" alt="Foyda va zarar" />
+      </div>
+      <p class="dash-name">Foyda &amp; Zarar</p>
+    </section>
+
+    <section class="slide answers" data-title="7 javob">
+      <div class="answers-head">
+        <h1>7 ta savolga — <span>7 ta javob</span></h1>
+      </div>
+      <div class="qa-grid">
+        <article class="qa-card">
+          <div class="qa-q"><em>01</em>Savdo o‘syaptimi?</div>
+          <div class="qa-thumb"><img src="screenshots/user-savdo.png" alt="" /></div>
+          <div class="qa-name">Oylik savdo</div>
+        </article>
+        <article class="qa-card">
+          <div class="qa-q"><em>02</em>Mijoz qayerdan kelyapti?</div>
+          <div class="qa-thumb"><img src="screenshots/user-mijoz-oqimi.png" alt="" /></div>
+          <div class="qa-name">Mijoz oqimi</div>
+        </article>
+        <article class="qa-card">
+          <div class="qa-q"><em>03</em>Qaysi mahsulot yaxshi sotilmoqda?</div>
+          <div class="qa-thumb"><img src="screenshots/user-mahsulot-1.png" alt="" /></div>
+          <div class="qa-name">Mahsulotlar tahlili</div>
+        </article>
+        <article class="qa-card">
+          <div class="qa-q"><em>04</em>Yangi mijoz kelayaptimi?</div>
+          <div class="qa-thumb"><img src="screenshots/user-mijoz-osish.png" alt="" /></div>
+          <div class="qa-name">Yangi mijozlar</div>
+        </article>
+        <article class="qa-card">
+          <div class="qa-q"><em>05</em>Biznesim kimni qo‘lida?</div>
+          <div class="qa-thumb"><img src="screenshots/user-eng-yaxshi-mijozlar.png" alt="" /></div>
+          <div class="qa-name">Mijozlar analitikasi</div>
+        </article>
+        <article class="qa-card">
+          <div class="qa-q"><em>06</em>Kim yaxshi ishlayapti?</div>
+          <div class="qa-thumb"><img src="screenshots/user-xodimlar-1.png" alt="" /></div>
+          <div class="qa-name">Xodimlar hisoboti</div>
+        </article>
+        <article class="qa-card">
+          <div class="qa-q"><em>07</em>Savdo bor — foyda bormi?</div>
+          <div class="qa-thumb"><img src="screenshots/user-fayda-zarar.png" alt="" /></div>
+          <div class="qa-name">Foyda &amp; Zarar</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="slide eco" data-title="Ekosistema">
+      <h1 class="eco-title">EKOSISTEMA</h1>
+      <div class="eco-stage">
+        <div class="eco-shot">
+          <img src="screenshots/user-ekosistema.png" alt="AlfaPOS ekosistema" />
+        </div>
+      </div>
+    </section>
+
+    <section class="slide contact" data-title="Aloqa">
+      <img class="contact-logo" src="logos/alfapos.png" alt="AlfaPOS" />
+      <a class="contact-phone" href="tel:+998911003205">+998 91 100 32 05</a>
+      <div class="contact-links">
+        <a href="https://alfapos.uz" target="_blank" rel="noopener">alfapos.uz</a>
+        <span>·</span>
+        <a href="https://t.me/alfapos" target="_blank" rel="noopener">t.me/alfapos</a>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="footer">
+    <div class="progress" id="progress"></div>
+    <div>AlfaPOS · ERP</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="nav" type="button" id="prev">←</button>
+      <span id="counter">1</span>
+      <button class="nav" type="button" id="next">→</button>
+      <span>F</span>
+    </div>
+  </div>
+
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    let i = 0;
+    const counter = document.getElementById('counter');
+    const progress = document.getElementById('progress');
+
+    function show(n) {
+      i = (n + slides.length) % slides.length;
+      slides.forEach((s, idx) => s.classList.toggle('active', idx === i));
+      counter.textContent = (i + 1) + ' / ' + slides.length;
+      progress.style.width = ((i + 1) / slides.length * 100) + '%';
+      document.title = 'AlfaPOS — ' + (slides[i].dataset.title || 'ERP');
+    }
+
+    document.getElementById('prev').onclick = () => show(i - 1);
+    document.getElementById('next').onclick = () => show(i + 1);
+
+    window.addEventListener('keydown', (e) => {
+      if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); show(i + 1); }
+      if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); show(i - 1); }
+      if (e.key === 'Home') show(0);
+      if (e.key === 'End') show(slides.length - 1);
+      if (e.key === 'f' || e.key === 'F') {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+        else document.exitFullscreen?.();
+      }
+    });
+
+    let touchX = null;
+    window.addEventListener('touchstart', (e) => { touchX = e.changedTouches[0].screenX; });
+    window.addEventListener('touchend', (e) => {
+      if (touchX == null) return;
+      const dx = e.changedTouches[0].screenX - touchX;
+      if (Math.abs(dx) > 50) show(i + (dx < 0 ? 1 : -1));
+      touchX = null;
+    });
+
+    show(0);
+  </script>
+</body>
+</html>
